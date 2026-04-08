@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>現在キャリア診断 | 幸せな転職</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+            background-color: #FDF6EE;
+            color: #3D2C1E;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 20px 16px 48px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 28px 0 24px;
+        }
+        .header-label {
+            font-size: 12px;
+            color: #E07A3A;
+            letter-spacing: 0.12em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3D2C1E;
+            line-height: 1.45;
+        }
+
+        /* Start Screen */
+        .info-box {
+            background: #FFF8F0;
+            border: 1px solid #E8C9A0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+        }
+        .info-box-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #E07A3A;
+            margin-bottom: 10px;
+        }
+        .info-box-content {
+            font-size: 14px;
+            color: #6B4E38;
+            line-height: 1.8;
+        }
+
+        .score-legend {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .score-item {
+            background: #FFF8F0;
+            border: 1px solid #E8C9A0;
+            border-radius: 10px;
+            padding: 10px 16px;
+            text-align: center;
+            min-width: 90px;
+        }
+        .score-point {
+            font-size: 22px;
+            font-weight: bold;
+            color: #E07A3A;
+        }
+        .score-label {
+            font-size: 12px;
+            color: #6B4E38;
+            margin-top: 3px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            max-width: 340px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #E07A3A, #F5A55A);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 17px 32px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(224, 122, 58, 0.38);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(224,122,58,0.48); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-next {
+            flex: 1;
+            background: linear-gradient(135deg, #E07A3A, #F5A55A);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(224, 122, 58, 0.32);
+            transition: all 0.2s;
+        }
+        .btn-next:hover { transform: translateY(-2px); }
+        .btn-next:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .btn-prev {
+            background: white;
+            color: #6B4E38;
+            border: 2px solid #E8C9A0;
+            border-radius: 50px;
+            padding: 12px 22px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-prev:hover { background: #FFF8F0; }
+
+        .retry-btn {
+            display: block;
+            text-align: center;
+            margin: 24px auto 0;
+            background: white;
+            color: #E07A3A;
+            border: 2px solid #E07A3A;
+            border-radius: 50px;
+            padding: 13px 36px;
+            font-size: 15px;
+            cursor: pointer;
+            max-width: 220px;
+            transition: all 0.2s;
+        }
+        .retry-btn:hover { background: #FFF0E8; }
+
+        /* Progress */
+        .progress-section { margin-bottom: 22px; }
+        .progress-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .progress-label { font-size: 13px; color: #6B4E38; }
+        .progress-count { font-size: 13px; color: #E07A3A; font-weight: bold; }
+        .progress-bar-bg {
+            background: #E8C9A0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #E07A3A, #F5A55A);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        /* Category header */
+        .category-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .category-icon { font-size: 40px; margin-bottom: 6px; }
+        .category-name { font-size: 22px; font-weight: bold; color: #3D2C1E; }
+        .category-subtitle { font-size: 13px; color: #6B4E38; margin-top: 4px; }
+
+        /* Question card */
+        .question-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            border: 1px solid #F0DFC0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .question-number {
+            font-size: 11px;
+            color: #E07A3A;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .question-text {
+            font-size: 15px;
+            color: #3D2C1E;
+            line-height: 1.75;
+            margin-bottom: 14px;
+        }
+        .options { display: flex; flex-direction: column; gap: 8px; }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 2px solid #E8C9A0;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+            color: #3D2C1E;
+            user-select: none;
+        }
+        .option-label:hover { border-color: #E07A3A; background: #FFF8F0; }
+        .option-label input[type="radio"] { display: none; }
+        .option-label.selected {
+            border-color: #E07A3A;
+            background: #FFF3E8;
+            font-weight: bold;
+        }
+
+        .option-radio {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #E8C9A0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .option-label.selected .option-radio {
+            border-color: #E07A3A;
+            background: #E07A3A;
+        }
+        .option-label.selected .option-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+        .option-score {
+            margin-left: auto;
+            font-size: 12px;
+            color: #B08060;
+            background: #F5EDE0;
+            padding: 3px 10px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+        .option-label.selected .option-score { background: #E07A3A; color: white; }
+
+        /* Nav buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            align-items: center;
+        }
+
+        /* Results */
+        .result-illust {
+            width: 100%;
+            max-width: 340px;
+            height: auto;
+            border-radius: 16px;
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        }
+        .result-header { text-align: center; margin-bottom: 28px; }
+        .result-label {
+            font-size: 13px;
+            color: #E07A3A;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .result-type-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3D2C1E;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .result-shape {
+            font-size: 13px;
+            color: #6B4E38;
+            background: #FFF8F0;
+            border: 1px solid #E8C9A0;
+            border-radius: 20px;
+            display: inline-block;
+            padding: 5px 18px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #F0DFC0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .chart-title {
+            text-align: center;
+            font-size: 14px;
+            color: #6B4E38;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 22px;
+        }
+        .score-cell {
+            text-align: center;
+            background: #FFF8F0;
+            border-radius: 10px;
+            padding: 10px 6px;
+        }
+        .score-cell-name { font-size: 11px; color: #6B4E38; margin-bottom: 4px; }
+        .score-cell-value { font-size: 20px; font-weight: bold; color: #E07A3A; }
+        .score-cell-max { font-size: 10px; color: #B08060; }
+
+        .result-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            border: 1px solid #F0DFC0;
+        }
+        .result-section-title {
+            font-size: 13px;
+            color: #E07A3A;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .result-section-body {
+            font-size: 15px;
+            color: #3D2C1E;
+            line-height: 1.85;
+        }
+
+        .advice-box {
+            background: linear-gradient(135deg, #FFF3E8, #FFF8F2);
+            border: 2px solid #E07A3A;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .advice-title {
+            font-size: 14px;
+            color: #E07A3A;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .advice-text {
+            font-size: 15px;
+            color: #3D2C1E;
+            line-height: 1.95;
+        }
+
+        .author-footer {
+            text-align: center;
+            padding: 24px 0 8px;
+            border-top: 1px solid #E8C9A0;
+            margin-top: 24px;
+        }
+        .author-book { font-size: 13px; color: #6B4E38; }
+        .author-name { font-size: 15px; font-weight: bold; color: #3D2C1E; margin-top: 4px; }
+
+        /* Utility */
+        .hidden { display: none !important; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeInUp 0.35s ease both; }
+
+        @media (max-width: 440px) {
+            .header-title { font-size: 20px; }
+            .score-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+            .score-cell { padding: 8px 3px; }
+            .score-cell-value { font-size: 17px; }
+            .score-cell-name { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header (always visible) -->
+    <div class="header">
+        <div class="header-label">書籍「幸せな転職」特典</div>
+        <div class="header-title">現在キャリア診断<br>全40問チェック</div>
+    </div>
+
+    <!-- ===== START SCREEN ===== -->
+    <div id="startScreen" class="fade-in">
+        <div class="info-box">
+            <div class="info-box-title">📋 診断について</div>
+            <div class="info-box-content">
+                8つの分野（仕事・お金・学び・人間関係・家庭・趣味・健康・貢献）について、各5問・合計40問に答えていただきます。<br><br>
+                回答結果をレーダーチャートで可視化し、あなたの「現在のキャリアタイプ」と、タイプ別のアドバイスをお伝えします。
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-bottom:12px; font-size:14px; color:#6B4E38; font-weight:bold;">回答の基準</div>
+        <div class="score-legend">
+            <div class="score-item">
+                <div class="score-point">2点</div>
+                <div class="score-label">当てはまる</div>
+            </div>
+            <div class="score-item">
+                <div class="score-point">1点</div>
+                <div class="score-label">まあまあ<br>当てはまる</div>
+            </div>
+            <div class="score-item">
+                <div class="score-point">0点</div>
+                <div class="score-label">当てはまらない</div>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="startDiagnosis()">診断をはじめる →</button>
+        <div style="text-align:center; margin-top:14px; font-size:13px; color:#B08060;">所要時間：約5〜10分</div>
+    </div>
+
+    <!-- ===== QUESTIONS SCREEN ===== -->
+    <div id="questionsScreen" class="hidden">
+        <div class="progress-section">
+            <div class="progress-top">
+                <span class="progress-label" id="progressLabel">分野 1 / 8</span>
+                <span class="progress-count" id="progressCount">1 / 8</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar" style="width:12.5%"></div>
+            </div>
+        </div>
+
+        <div class="category-header">
+            <div class="category-icon" id="categoryIcon">💼</div>
+            <div class="category-name" id="categoryName">仕事</div>
+            <div class="category-subtitle" id="categorySubtitle"></div>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="nav-buttons">
+            <button class="btn-prev" id="prevBtn" onclick="prevCategory()">← 戻る</button>
+            <button class="btn-next" id="nextBtn" onclick="nextCategory()">次へ →</button>
+        </div>
+    </div>
+
+    <!-- ===== RESULTS SCREEN ===== -->
+    <div id="resultsScreen" class="hidden fade-in">
+        <img id="resultIllust" class="result-illust" src="" alt="">
+        <div class="result-header">
+            <div class="result-label">あなたのキャリアタイプ</div>
+            <div class="result-type-name" id="resultTypeName"></div>
+            <div class="result-shape" id="resultShape"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">キャリアバランスチャート（各分野 10点満点）</div>
+            <canvas id="radarChart"></canvas>
+            <div class="score-grid" id="scoreGrid"></div>
+        </div>
+
+        <div class="result-section">
+            <div class="result-section-title">📌 特徴</div>
+            <div class="result-section-body" id="resultFeature"></div>
+        </div>
+
+        <div class="result-section">
+            <div class="result-section-title">🎯 目指す方向</div>
+            <div class="result-section-body" id="resultDirection"></div>
+        </div>
+
+        <div class="advice-box">
+            <div class="advice-title">💬 中村浩一郎からのアドバイス</div>
+            <div class="advice-text" id="resultAdvice"></div>
+        </div>
+
+        <button class="retry-btn" onclick="restartDiagnosis()">もう一度診断する</button>
+
+        <div class="author-footer">
+            <div class="author-book">書籍「幸せな転職」著者</div>
+            <div class="author-name">中村浩一郎</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ===== DATA =====
+const categories = [
+    {
+        name: '仕事', icon: '💼',
+        subtitle: 'やりがい・満足度・主体性について',
+        questions: [
+            '今の仕事にやりがいや面白さを感じている。',
+            '自分の「やりたいこと」が今の職場でできている。',
+            '自分の裁量で進められる部分が多く、やらされている感覚は少ない。',
+            '入社時に希望した部署や、やりたかった役割に就くことができている。',
+            '1日のうち、仕事に夢中になっている（没頭している）時間がある。',
+        ]
+    },
+    {
+        name: 'お金', icon: '💰',
+        subtitle: '給与・評価制度・経済的自由について',
+        questions: [
+            '今の自分の能力や成果に対して、十分な給与をもらえている。',
+            '今の会社にこのままいれば、順調に年収が上がっていく見通しが立つ。',
+            '自分の業界や会社の給与水準は、世間一般と比べて低くないと思う。',
+            '会社の給与テーブルや評価制度が明確で、「どう行動すれば給料が上がるのか」という基準に納得できている。',
+            '「お金がないから」という理由で、自分の人生の重要な選択（住む場所、働き方、挑戦したいことなど）を我慢したり、諦めたりせずに済んでいる。',
+        ]
+    },
+    {
+        name: '学び', icon: '📚',
+        subtitle: '成長・挑戦・スキルアップについて',
+        questions: [
+            '最近、仕事を通じて自分が成長しているという実感がある。',
+            '毎日同じことの繰り返しではなく、新しい挑戦や学びの機会がある。',
+            '今の環境は、自分のまだ見ぬ可能性を引き出してくれると感じる。',
+            '専門スキルや汎用的なスキルなど、自分の伸ばしたい能力が伸びている。',
+            'まわりの社員も向上心や貪欲さがあり、切磋琢磨できる環境だ。',
+        ]
+    },
+    {
+        name: '人間関係', icon: '🤝',
+        subtitle: '職場の人間関係・組織風土について',
+        questions: [
+            '上司や同僚に対して、気を遣いすぎず本音で話せる関係性が築けている。',
+            '今の職場の組織風土や、大切にしている価値観が自分に合っている。',
+            '困ったときに「助けてほしい」と素直に言える相手が社内にいる。',
+            '人間関係の問題で、仕事へのモチベーションが下がることはない。',
+            '一緒に働きたいと思える尊敬できる上司や先輩がいる。',
+        ]
+    },
+    {
+        name: '家庭', icon: '🏡',
+        subtitle: '家族との時間・関係性・将来計画について',
+        questions: [
+            '家族との会話が、家事や育児の「事務連絡」だけになっていない。',
+            '休日には、疲れ切って寝ているだけでなく、家族と外出したり楽しんだりできている。',
+            '自分の働き方について、家族から反対されたり不満を言われたりしていない。',
+            'パートナーと、将来のライフプランについて落ち着いて話す時間や心の余裕がある。',
+            '今の働き方を続けても、家族との関係が壊れる不安はない。',
+        ]
+    },
+    {
+        name: '趣味', icon: '🎨',
+        subtitle: 'プライベート・サードプレイス・好きなことについて',
+        questions: [
+            '職場や家庭以外にも、自分が素直になれるサードプレイス（第3の居場所）がある。',
+            '推し活や習い事など、仕事とは無関係にエネルギーを注げる対象がある。',
+            '新しい趣味や気になっていたことを「始めてみよう」という気力が湧いてくる。',
+            '仕事だけの人間にならず、自分の人生全体をデザインできている感覚がある。',
+            '自分の好きなことや趣味に没頭できる時間を定期的に持てている。',
+        ]
+    },
+    {
+        name: '健康', icon: '💪',
+        subtitle: '心身のコンディション・エネルギーについて',
+        questions: [
+            '毎朝スッキリと目覚め、仕事に向かう十分なエネルギーがある。',
+            '無理をして心身のエネルギーが枯れてしまっている感覚はない。',
+            '今の環境は、プレッシャーのかかり方や休み方が自分の心身に合っている。',
+            '心と体の状態が整っており、自分のパフォーマンスを十分に発揮できている。',
+            '心身の不調を感じたとき、我慢し続けずに病院や専門家を頼るなど、適切な対処（自分を守る行動）ができている。',
+        ]
+    },
+    {
+        name: '貢献', icon: '🌱',
+        subtitle: '得意・強みの活かし方・感謝について',
+        questions: [
+            '自分の「得意なこと（苦にならず自然にできること）」を今の職場で活かせている。',
+            '自分が、人や社会の役に立っているという実感をしっかり持てている。',
+            '自分の得意が活かせない場所で、無理をして働いている感覚はない。',
+            '自分の得意な仕事をしている結果として、昇格や昇給につながりやすいと感じる。',
+            '普段の仕事の中で、同僚やお客様から直接「ありがとう」と感謝の言葉をかけられることが多い。',
+        ]
+    },
+];
+
+// Result types (in judgment order)
+const resultTypes = [
+    {
+        id: 'gasketsu',
+        image: 'images/type5.png',
+        name: '環境リセット・休息優先タイプ',
+        shape: 'チャートの形：中心で縮こまった「ガス欠型」',
+        feature: 'すべての項目が低く、「頑張りたいのに、体がついてこない」とエネルギーが枯渇気味の状態。今の職場に戻ればまたすり減ってしまうと感じています。',
+        direction: 'やりがいや年収アップを一旦手放し、年収を下げてでも落ち着いて働ける環境など、コンディションを立て直すことを最優先にした転職。',
+        advice: '「頑張れない」と自分を責めていませんか？ あなたは決して弱いわけではありません。今はただ、エネルギーが枯れきってしまっているだけです。まずは、やりがいや年収アップよりも「落ち着いて心身のコンディションを整えられる環境」へ行くことを最優先にしましょう。環境を変えて心と体を整えることができれば、あなたは必ずやり直すことができます。'
+    },
+    {
+        id: 'taiyou',
+        image: 'images/type7.png',
+        name: 'キャリア充実・現職エンジョイタイプ',
+        shape: 'チャートの形：大きく広がった「大きな太陽型」',
+        feature: 'すべての分野がバランスよく高い状態。仕事でも、プライベートでも、健康面でも充実した日々を送れています。',
+        direction: '焦って転職活動をする必要はまったくありません。今の環境や人間関係を大切にしながら、さらなる高みを目指しましょう。',
+        advice: 'おめでとうございます！ あなたは今、人生のバランスが取れた素晴らしいキャリアを歩んでいます。焦って転職活動をする必要はまったくありません。今の環境や周りの人たちとのご縁を大切にしながら、今の仕事を思い切り楽しんでください。もし今後、新しい興味が湧いてきたら、その時が次の「最高の未来」を描くタイミングです。'
+    },
+    {
+        id: 'hitoten',
+        image: 'images/type4.png',
+        name: '人づき合い消耗・関係性リセットタイプ',
+        shape: 'チャートの形：一点だけ空気が抜ける「一点くぼみ型」',
+        feature: '全体的に点数は悪くないのに、「人間関係」だけが突出して低い状態。仕事内容よりも、職場の風土や上司・同僚との関係性にエネルギーを大きく奪われ、「人づきあいで消耗している」状態です。',
+        direction: '自分の価値観に近い人たちが集まる、心理的安全性の高い環境へ。「誰と働くか」をゼロから選び直すこと。',
+        advice: '真面目なあなたは、人間関係を理由に転職を考えるのは「逃げ」だと思っているかもしれません。しかし、人生の幸福度を決めるのは「良好な人間関係」です。どれだけ努力しても相手が変わらないなら、「誰と働くか」をゼロから選び直すことは正しい選択です。あなたと価値観が近い人たちが集まる場所は、必ず他にあります。'
+    },
+    {
+        id: 'mikezuri',
+        image: 'images/type2.png',
+        name: '尽くしすぎ・自己犠牲タイプ',
+        shape: 'チャートの形：自分に返ってこない「身削り型」',
+        feature: '「貢献」や「仕事（やりたいこと）」は高いが、「お金」が低い状態。「役に立っている実感がない」「頑張っているのに、報われない」という不満を抱え、自分の本音や正当な評価が置いてけぼりになっています。',
+        direction: '人の役に立つ「得意」を活かしつつ、それが正当に評価され、収入や待遇アップにつながる場所へ行くこと。',
+        advice: 'あなたの「人の役に立ちたい」という貢献心は素晴らしい才能です。しかし、年収や待遇はあなたの「努力」ではなく、「いる業界や会社の仕組み」で決まってしまいます。感謝の言葉だけで満足せず、あなたの得意や頑張りがしっかりと「お金」や「正当な評価」として報われる場所へ行くことを、自分自身に許可してあげてください。'
+    },
+    {
+        id: 'pokitto',
+        image: 'images/type1.png',
+        name: '仕事ばっかり・バランス崩壊タイプ',
+        shape: 'チャートの形：前にだけ突き進む「ポキッと寸前型」',
+        feature: '「仕事」「お金」「学び」が高く、プライベートや健康が低い状態。成果や成長には貪欲で実際に頑張っているものの、自分を犠牲にしています。',
+        direction: '家族とのすれ違いや健康を損なう前に働き方を見直し、人生全体のバランスを整え直す転職。',
+        advice: '仕事でしっかり成果を出しているあなたは、とても優秀で努力家です。ただ、家族との時間や健康など、大切なものを犠牲にしていませんか？ ひとつの分野に偏りすぎると、いつか人生全体のバランスを崩してしまいます。「家族に苦労をかけないために頑張っているのに、すれ違っている」としたら本末転倒。働き方を見直すサインです。'
+    },
+    {
+        id: 'nurumau',
+        image: 'images/type3.png',
+        name: '生活安定・成長ストップタイプ',
+        shape: 'チャートの形：根を張って動けない「ぬるま湯型」',
+        feature: '「家庭」「趣味」「健康」は安定しているが、「仕事」「学び」「お金」が低い状態。生活に余裕はあるものの、仕事に対する刺激がなくなり、「成長が止まった気がする」と退屈さを感じています。',
+        direction: '挑戦心に再び火をつけるため、今の安定を一部手放してでも、もう一度自分の力が試せる伸びる環境へ行くこと。',
+        advice: '生活の基盤がしっかり安定しているのは素晴らしいことです。ただ、当たり前に仕事ができるようになり、成長の実感やワクワクが薄れていませんか？ そのままにしていると、挑戦する「筋肉」が衰えて動けなくなってしまいます。今の安定という土台があるからこそ、少しだけ環境を変えて、自分のまだ見ぬ可能性を試す冒険に出てみましょう。'
+    },
+    {
+        id: 'marumaru',
+        image: 'images/type6.png',
+        name: 'そこそこ満足・なんか違うタイプ',
+        shape: 'チャートの形：引っ掛かりのない「中くらいの真ん丸型」',
+        feature: 'すべての項目が平均的。大きな不満はないものの、まわりに合わせた「正解」に寄りかかってきたため、「自分が本当に叶えたいこと」がわからなくなっています。',
+        direction: '誰かの正解ではなく、自分と向き合い、自分だけの欲望（本音）を見つけ出すこと。',
+        advice: '大きな不満はないけれど、どこか満たされない。それはあなたが「みんなと同じ正解」を基準に選んできたからです。他人の正解に寄りかかっているうちは、不安は消えません。「誰かに笑われるかも」という制限を外し、自分が本当に叶えたい欲望を書き出す『最高の未来メモ』を作ってみましょう。自分の意思で選んだ時から、本当のキャリアが始まります。'
+    },
+];
+
+// ===== STATE =====
+let currentCategory = 0;
+let answers = {}; // key: "ci-qi" → value: 0|1|2
+let radarChart = null;
+
+// ===== FUNCTIONS =====
+function startDiagnosis() {
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('questionsScreen').classList.remove('hidden');
+    renderCategory(0);
+}
+
+function renderCategory(index) {
+    currentCategory = index;
+    const cat = categories[index];
+
+    document.getElementById('categoryIcon').textContent = cat.icon;
+    document.getElementById('categoryName').textContent = cat.name;
+    document.getElementById('categorySubtitle').textContent = cat.subtitle;
+
+    const pct = ((index + 1) / categories.length) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `分野 ${index + 1} / ${categories.length}`;
+    document.getElementById('progressCount').textContent = `${index + 1} / ${categories.length}`;
+
+    document.getElementById('prevBtn').style.visibility = index === 0 ? 'hidden' : 'visible';
+
+    const isLast = index === categories.length - 1;
+    document.getElementById('nextBtn').textContent = isLast ? '診断結果を見る ✨' : '次へ →';
+
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+
+    cat.questions.forEach((q, qi) => {
+        const key = `${index}-${qi}`;
+        const saved = answers[key];
+
+        const card = document.createElement('div');
+        card.className = 'question-card fade-in';
+        card.style.animationDelay = (qi * 0.05) + 's';
+        card.innerHTML = `
+            <div class="question-number">Q${index * 5 + qi + 1} / 40</div>
+            <div class="question-text">${q}</div>
+            <div class="options">
+                ${makeOption(key, 2, '当てはまる', saved)}
+                ${makeOption(key, 1, 'まあまあ当てはまる', saved)}
+                ${makeOption(key, 0, '当てはまらない', saved)}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    container.querySelectorAll('.option-label').forEach(label => {
+        label.addEventListener('click', function () {
+            const k = this.dataset.key;
+            const v = parseInt(this.dataset.value);
+            answers[k] = v;
+            container.querySelectorAll(`.option-label[data-key="${k}"]`).forEach(l => l.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function makeOption(key, value, label, saved) {
+    const selected = saved === value ? 'selected' : '';
+    const pts = { 2: '2点', 1: '1点', 0: '0点' };
+    return `
+        <label class="option-label ${selected}" data-key="${key}" data-value="${value}">
+            <input type="radio" name="${key}" value="${value}" ${saved === value ? 'checked' : ''}>
+            <div class="option-radio"></div>
+            <span>${label}</span>
+            <span class="option-score">${pts[value]}</span>
+        </label>
+    `;
+}
+
+function prevCategory() {
+    if (currentCategory > 0) renderCategory(currentCategory - 1);
+}
+
+function nextCategory() {
+    const unanswered = categories[currentCategory].questions.filter((_, qi) =>
+        answers[`${currentCategory}-${qi}`] === undefined
+    );
+    if (unanswered.length > 0) {
+        alert(`この分野の質問がまだ ${unanswered.length} 問残っています。すべてに回答してください。`);
+        return;
+    }
+    if (currentCategory < categories.length - 1) {
+        renderCategory(currentCategory + 1);
+    } else {
+        showResults();
+    }
+}
+
+function calcScores() {
+    return categories.map((cat, ci) => {
+        let total = 0;
+        for (let qi = 0; qi < cat.questions.length; qi++) {
+            total += answers[`${ci}-${qi}`] ?? 0;
+        }
+        return total;
+    });
+}
+
+function judgeType(scores) {
+    // [仕事, お金, 学び, 人間関係, 家庭, 趣味, 健康, 貢献]
+    const [shigoto, okane, manabi, ningen, katei, shumi, kenkou, kouken] = scores;
+    const isLow  = s => s <= 3;
+    const isHigh = s => s >= 7;
+
+    const lowCount = scores.filter(isLow).length;
+
+    // 1. ガス欠型: 5つ以上が低い
+    if (lowCount >= 5) return resultTypes[0];
+
+    // 2. 大きな太陽型: 全て7以上
+    if (scores.every(isHigh)) return resultTypes[1];
+
+    // 3. 一点くぼみ型: 人間関係が低い
+    if (isLow(ningen)) return resultTypes[2];
+
+    // 4. 身削り型: (貢献 or 仕事) >= 6 かつ お金 <= 3
+    if ((kouken >= 6 || shigoto >= 6) && isLow(okane)) return resultTypes[3];
+
+    // 5. ポキッと寸前型: (仕事 or お金) >= 7 かつ 家庭・趣味・健康のうち2つ以上が低い
+    if (isHigh(shigoto) || isHigh(okane)) {
+        if ([katei, shumi, kenkou].filter(isLow).length >= 2) return resultTypes[4];
+    }
+
+    // 6. ぬるま湯型: 家庭・趣味・健康が全て6以上 かつ 学び or 仕事が低い
+    if (katei >= 6 && shumi >= 6 && kenkou >= 6 && (isLow(manabi) || isLow(shigoto))) return resultTypes[5];
+
+    // 7. 中くらいの真ん丸型
+    return resultTypes[6];
+}
+
+function showResults() {
+    document.getElementById('questionsScreen').classList.add('hidden');
+    const resultsEl = document.getElementById('resultsScreen');
+    resultsEl.classList.remove('hidden');
+
+    const scores = calcScores();
+    const type = judgeType(scores);
+
+    const illust = document.getElementById('resultIllust');
+    illust.src = type.image;
+    illust.alt = type.name;
+    document.getElementById('resultTypeName').textContent = type.name;
+    document.getElementById('resultShape').textContent = type.shape;
+    document.getElementById('resultFeature').textContent = type.feature;
+    document.getElementById('resultDirection').textContent = type.direction;
+    document.getElementById('resultAdvice').textContent = type.advice;
+
+    // Score grid
+    document.getElementById('scoreGrid').innerHTML = categories.map((cat, i) => `
+        <div class="score-cell">
+            <div class="score-cell-name">${cat.icon} ${cat.name}</div>
+            <div class="score-cell-value">${scores[i]}</div>
+            <div class="score-cell-max">/ 10</div>
+        </div>
+    `).join('');
+
+    // Radar chart
+    if (radarChart) radarChart.destroy();
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: categories.map(c => c.name),
+            datasets: [{
+                label: 'あなたのスコア',
+                data: scores,
+                backgroundColor: 'rgba(224, 122, 58, 0.18)',
+                borderColor: '#E07A3A',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#E07A3A',
+                pointBorderColor: '#fff',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 10,
+                    ticks: {
+                        stepSize: 2,
+                        font: { size: 11 },
+                        color: '#B08060',
+                        backdropColor: 'transparent',
+                    },
+                    pointLabels: {
+                        font: { size: 13, weight: 'bold' },
+                        color: '#3D2C1E',
+                    },
+                    grid: { color: '#E8C9A0' },
+                    angleLines: { color: '#E8C9A0' },
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restartDiagnosis() {
+    answers = {};
+    currentCategory = 0;
+    if (radarChart) { radarChart.destroy(); radarChart = null; }
+    document.getElementById('resultsScreen').classList.add('hidden');
+    document.getElementById('startScreen').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
