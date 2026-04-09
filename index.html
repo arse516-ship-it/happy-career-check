@@ -712,7 +712,7 @@ function renderCategory(index) {
     document.getElementById('progressLabel').textContent = `分野 ${index + 1} / ${categories.length}`;
     document.getElementById('progressCount').textContent = `${index + 1} / ${categories.length}`;
 
-    document.getElementById('prevBtn').style.visibility = index === 0 ? 'hidden' : 'visible';
+    document.getElementById('prevBtn').style.visibility = 'visible';
 
     const isLast = index === categories.length - 1;
     document.getElementById('nextBtn').textContent = isLast ? '診断結果を見る ✨' : '次へ →';
@@ -766,7 +766,11 @@ function makeOption(key, value, label, saved) {
 }
 
 function prevCategory() {
-    if (currentCategory > 0) renderCategory(currentCategory - 1);
+    if (currentCategory > 0) {
+        renderCategory(currentCategory - 1);
+    } else {
+        restartDiagnosis();
+    }
 }
 
 function nextCategory() {
