@@ -520,15 +520,6 @@
             <div class="score-grid" id="scoreGrid"></div>
         </div>
 
-        <div class="result-section">
-            <div class="result-section-title">📌 特徴</div>
-            <div class="result-section-body" id="resultFeature"></div>
-        </div>
-
-        <div class="result-section">
-            <div class="result-section-title">🎯 目指す方向</div>
-            <div class="result-section-body" id="resultDirection"></div>
-        </div>
 
         <div class="advice-box">
             <div class="advice-title">💬 中村浩一郎からのアドバイス</div>
@@ -860,8 +851,6 @@ function showResults() {
     illust.alt = type.name;
     document.getElementById('resultTypeName').textContent = type.name;
     document.getElementById('resultShape').textContent = type.shape;
-    document.getElementById('resultFeature').textContent = type.feature;
-    document.getElementById('resultDirection').textContent = type.direction;
     document.getElementById('resultAdvice').innerHTML = type.advice;
 
     // Score grid
