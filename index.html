@@ -804,27 +804,26 @@ function judgeType(scores) {
     const isLow  = s => s <= 3;
     const isHigh = s => s >= 7;
 
-    const lowCount = scores.filter(isLow).length;
+    const lowCount  = scores.filter(isLow).length;
+    const highCount = scores.filter(isHigh).length;
 
-    // 1. ガス欠型: 5つ以上が低い
-    if (lowCount >= 5) return resultTypes[0];
+    // 1. ガス欠型: 低い分野が3つ以上、ただし高い分野が2つ以上あれば除外
+    if (lowCount >= 3 && highCount < 2) return resultTypes[0];
 
-    // 2. 大きな太陽型: 全て7以上
+    // 2. 大きな太陽型: 全て7点以上
     if (scores.every(isHigh)) return resultTypes[1];
 
-    // 3. 一点くぼみ型: 人間関係が低い
-    if (isLow(ningen)) return resultTypes[2];
+    // 3. 一点くぼみ型: 人間関係が低い かつ 低い分野が全体で2つ以下
+    if (isLow(ningen) && lowCount <= 2) return resultTypes[2];
 
-    // 4. 身削り型: (貢献 or 仕事) >= 6 かつ お金 <= 3
-    if ((kouken >= 6 || shigoto >= 6) && isLow(okane)) return resultTypes[3];
+    // 4. ポキッと寸前型: (仕事 or お金) >= 7 かつ 家庭・趣味・健康のうち2つ以上が低い
+    if ((isHigh(shigoto) || isHigh(okane)) && [katei, shumi, kenkou].filter(isLow).length >= 2) return resultTypes[4];
 
-    // 5. ポキッと寸前型: (仕事 or お金) >= 7 かつ 家庭・趣味・健康のうち2つ以上が低い
-    if (isHigh(shigoto) || isHigh(okane)) {
-        if ([katei, shumi, kenkou].filter(isLow).length >= 2) return resultTypes[4];
-    }
+    // 5. 身削り型: (貢献 or 仕事) >= 4 かつ お金 <= 3
+    if ((kouken >= 4 || shigoto >= 4) && isLow(okane)) return resultTypes[3];
 
-    // 6. ぬるま湯型: 家庭・趣味・健康が全て6以上 かつ 学び or 仕事が低い
-    if (katei >= 6 && shumi >= 6 && kenkou >= 6 && (isLow(manabi) || isLow(shigoto))) return resultTypes[5];
+    // 6. ぬるま湯型: 家庭・趣味・健康・学びのうち2つ以上が6以上 かつ 仕事・お金・貢献のいずれかが4点以下
+    if ([katei, shumi, kenkou, manabi].filter(s => s >= 6).length >= 2 && (shigoto <= 4 || okane <= 4 || kouken <= 4)) return resultTypes[5];
 
     // 7. 中くらいの真ん丸型
     return resultTypes[6];
