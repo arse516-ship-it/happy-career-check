@@ -27,17 +27,33 @@
             padding: 28px 0 24px;
         }
         .header-label {
-            font-size: 12px;
+            font-size: 13px;
             color: #E07A3A;
-            letter-spacing: 0.12em;
-            margin-bottom: 10px;
+            letter-spacing: 0.15em;
+            margin-bottom: 12px;
             font-weight: bold;
         }
         .header-title {
-            font-size: 24px;
+            font-size: 32px;
             font-weight: bold;
             color: #3D2C1E;
-            line-height: 1.45;
+            line-height: 1.4;
+        }
+
+        /* Book image */
+        .book-cover {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .book-cover img {
+            width: 160px;
+            border-radius: 6px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+        }
+        .book-cover-caption {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #B08060;
         }
 
         /* Start Screen */
@@ -410,6 +426,10 @@
 
     <!-- ===== START SCREEN ===== -->
     <div id="startScreen" class="fade-in">
+        <div class="book-cover">
+            <img src="images/book.jpg" alt="幸せな転職">
+            <div class="book-cover-caption">中村浩一郎 著「幸せな転職」読者限定特典</div>
+        </div>
         <div class="info-box">
             <div class="info-box-title">📋 診断について</div>
             <div class="info-box-content">
