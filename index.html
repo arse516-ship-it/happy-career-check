@@ -906,7 +906,9 @@ function restartDiagnosis() {
     answers = {};
     currentCategory = 0;
     if (radarChart) { radarChart.destroy(); radarChart = null; }
+    document.getElementById('questionsScreen').classList.add('hidden');
     document.getElementById('resultsScreen').classList.add('hidden');
+    document.getElementById('questionsContainer').innerHTML = '';
     document.getElementById('startScreen').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
